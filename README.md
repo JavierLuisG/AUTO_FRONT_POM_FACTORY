@@ -63,6 +63,3 @@ src/test
 ## 📊 Reportes
 Al finalizar, se puede consultar el reporte detallado con las evidencias de la ejecución en:
 `target/site/serenity/index.html`.
-
----
-> **Nota de Calidad:** Este proyecto cumple con los estándares de **Código Limpio** (sin código comentado) y **Nomenclatura Semántica** para garantizar que la automatización sea una herramienta de productividad y no una carga de mantenimiento.
