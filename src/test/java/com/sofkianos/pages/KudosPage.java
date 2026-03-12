@@ -2,13 +2,9 @@ package com.sofkianos.pages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -23,14 +19,17 @@ public class KudosPage {
     private final WebDriver driver;
     private final WebDriverWait wait;
 
-    @FindBy(xpath = "//a[normalize-space()='Kudos'] | //button[normalize-space()='Kudos'] | //*[@role='tab' and contains(translate(normalize-space(.),'KUDOS','kudos'),'kudos')] | //*[(self::a or self::button) and contains(translate(normalize-space(.),'KUDOS','kudos'),'kudos')]")
-    private List<WebElement> accesosAKudos;
+    @FindBy(xpath = "//button[contains(.,'Explorar Kudos')]")
+    private WebElement botonExplorarKudos;
 
-    @FindBy(xpath = "//*[self::section or self::div][contains(@class,'kudos') or contains(@class,'kudo') or contains(@class,'recognition') or contains(@data-testid,'kudos') or contains(@id,'kudos')]")
-    private List<WebElement> contenedoresDeKudos;
+    @FindBy(xpath = "//input[contains(@placeholder,'Buscar en de, para, mensaje...')]")
+    private WebElement inputBusqueda;
 
-    @FindBy(xpath = "//*[self::article or self::li or self::div][contains(@class,'kudo') or contains(@class,'recognition') or contains(@data-testid,'kudo') or contains(@data-testid,'recognition')]")
-    private List<WebElement> tarjetasDeReconocimiento;
+    @FindBy(xpath = "//button[contains(.,'Aplicar Filtros')]")
+    private WebElement botonAplicarFiltros;
+
+    @FindBy(xpath = "//table//tr")
+    private List<WebElement> filasKudos;
 
     public KudosPage(WebDriver driver) {
         this.driver = driver;
@@ -39,101 +38,44 @@ public class KudosPage {
     }
 
     public void abrirSeccionDeKudos() {
-        if (seccionKudosDisponible()) {
-            return;
-        }
-
-        if (abrirDesdeNavegacion()) {
-            esperarContenidoDeKudos();
-            return;
-        }
-
-        driver.get(obtenerUrlDeKudos());
-        esperarContenidoDeKudos();
+        wait.until(ExpectedConditions.elementToBeClickable(botonExplorarKudos)).click();
+        esperarResultados();
     }
 
-    public void verificarReconocimientoCreado(String remitente, String destinatario, String categoria, String mensaje) {
-        esperarContenidoDeKudos();
+    public void buscarPorMensaje(String mensaje) {
+        WebElement input = wait.until(ExpectedConditions.visibilityOf(inputBusqueda));
+        input.clear();
+        input.sendKeys(mensaje);
 
-        WebElement reconocimiento = tarjetasDeReconocimiento.stream()
-            .filter(WebElement::isDisplayed)
-            .filter(tarjeta -> contieneDatosDelReconocimiento(tarjeta, remitente, destinatario, categoria, mensaje))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("No se encontro un Kudo con los datos esperados."));
-
-        String contenido = normalizarTexto(reconocimiento.getText());
-        assertThat(contenido).contains(normalizarTexto(remitente));
-        assertThat(contenido).contains(normalizarTexto(destinatario));
-        assertThat(contenido).contains(normalizarTexto(categoria));
-        assertThat(contenido).contains(normalizarTexto(mensaje));
+        wait.until(ExpectedConditions.elementToBeClickable(botonAplicarFiltros)).click();
     }
 
-    private boolean abrirDesdeNavegacion() {
-        return accesosAKudos.stream()
-            .filter(WebElement::isDisplayed)
-            .findFirst()
-            .map(acceso -> {
-                wait.until(ExpectedConditions.elementToBeClickable(acceso)).click();
-                return true;
-            })
-            .orElse(false);
+    public void verificarKudoFiltrado(String mensaje) {
+        buscarPorMensaje(mensaje);
+        esperarResultados();
+
+        WebElement fila = filasKudos.stream()
+                .filter(WebElement::isDisplayed)
+                .filter(row -> normalizarTexto(row.getText()).contains(normalizarTexto(mensaje)))
+                .findFirst()
+                .orElseThrow(() ->
+                        new AssertionError("No se encontró un Kudo filtrado con el mensaje: " + mensaje)
+                );
+
+        assertThat(normalizarTexto(fila.getText())).contains(normalizarTexto(mensaje));
     }
 
-    private boolean seccionKudosDisponible() {
-        try {
-            return contenedoresDeKudos.stream().anyMatch(WebElement::isDisplayed)
-                || tarjetasDeReconocimiento.stream().anyMatch(WebElement::isDisplayed);
-        } catch (TimeoutException ignored) {
-            return false;
-        }
-    }
-
-    private void esperarContenidoDeKudos() {
-        wait.until(driver -> contenedoresDeKudos.stream().anyMatch(WebElement::isDisplayed)
-            || tarjetasDeReconocimiento.stream().anyMatch(WebElement::isDisplayed));
-    }
-
-    private boolean contieneDatosDelReconocimiento(WebElement tarjeta, String remitente, String destinatario, String categoria, String mensaje) {
-        String contenido = normalizarTexto(tarjeta.getText());
-        return contenido.contains(normalizarTexto(remitente))
-            && contenido.contains(normalizarTexto(destinatario))
-            && contenido.contains(normalizarTexto(categoria))
-            && contenido.contains(normalizarTexto(mensaje));
-    }
-
-    private String obtenerUrlDeKudos() {
-        return Optional.ofNullable(System.getProperty("sofkianos.kudos.url"))
-            .filter(url -> !url.isBlank())
-            .or(() -> Optional.ofNullable(System.getenv("SOFKIANOS_KUDOS_URL")).filter(url -> !url.isBlank()))
-            .or(() -> Optional.ofNullable(System.getProperty("webdriver.base.url")).filter(url -> !url.isBlank()).map(this::anexarRutaKudos))
-            .or(() -> Optional.ofNullable(System.getenv("SOFKIANOS_BASE_URL")).filter(url -> !url.isBlank()).map(this::anexarRutaKudos))
-            .orElseGet(this::obtenerUrlDeKudosDesdePaginaActual);
-    }
-
-    private String obtenerUrlDeKudosDesdePaginaActual() {
-        String urlActual = driver.getCurrentUrl();
-        if (urlActual == null || urlActual.isBlank()) {
-            throw new IllegalStateException("No se encontro la URL de Kudos. Configure sofkianos.kudos.url o webdriver.base.url.");
-        }
-        return anexarRutaKudos(urlActual);
-    }
-
-    private String anexarRutaKudos(String baseUrl) {
-        try {
-            URI uri = new URI(baseUrl);
-            String ruta = uri.getPath() == null ? "" : uri.getPath();
-            String rutaBase = ruta.endsWith("/") ? ruta.substring(0, ruta.length() - 1) : ruta;
-            String rutaKudos = rutaBase.endsWith("/kudos") ? rutaBase : rutaBase + "/kudos";
-            return new URI(uri.getScheme(), uri.getAuthority(), rutaKudos, null, null).toString();
-        } catch (URISyntaxException exception) {
-            if (baseUrl.endsWith("/kudos")) {
-                return baseUrl;
-            }
-            return baseUrl.endsWith("/") ? baseUrl + "kudos" : baseUrl + "/kudos";
-        }
+    private void esperarResultados() {
+        wait.until(driver ->
+                filasKudos.stream().anyMatch(WebElement::isDisplayed)
+        );
     }
 
     private String normalizarTexto(String valor) {
-        return valor == null ? "" : valor.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+        return valor == null
+                ? ""
+                : valor.trim()
+                .replaceAll("\\s+", " ")
+                .toLowerCase(Locale.ROOT);
     }
 }

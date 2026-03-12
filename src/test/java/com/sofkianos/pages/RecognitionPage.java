@@ -2,7 +2,6 @@ package com.sofkianos.pages;
 
 import java.time.Duration;
 import java.util.Objects;
-import java.util.Optional;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
@@ -24,22 +23,22 @@ public class RecognitionPage {
     private final WebDriverWait wait;
     private final Actions actions;
 
-    @FindBy(xpath = "//select[contains(@name,'sender') or contains(@id,'sender') or contains(@name,'remitente') or contains(@id,'remitente')] | //input[contains(@name,'sender') or contains(@id,'sender') or contains(@name,'remitente') or contains(@id,'remitente')] | //*[@role='combobox' and (contains(translate(@aria-label,'REMITENTESND','remitentesnd'),'remitente') or contains(translate(@aria-label,'SENDER','sender'),'sender'))]")
+    @FindBy(name = "from")
     private WebElement selectorRemitente;
 
-    @FindBy(xpath = "//select[contains(@name,'recipient') or contains(@id,'recipient') or contains(@name,'destinatario') or contains(@id,'destinatario')] | //input[contains(@name,'recipient') or contains(@id,'recipient') or contains(@name,'destinatario') or contains(@id,'destinatario')] | //*[@role='combobox' and (contains(translate(@aria-label,'DESTINATARIORECIPIENT','destinatariorecipient'),'destinatario') or contains(translate(@aria-label,'RECIPIENT','recipient'),'recipient'))]")
+    @FindBy(name = "to")
     private WebElement selectorDestinatario;
 
-    @FindBy(xpath = "//select[contains(@name,'category') or contains(@id,'category') or contains(@name,'categoria') or contains(@id,'categoria')] | //input[contains(@name,'category') or contains(@id,'category') or contains(@name,'categoria') or contains(@id,'categoria')] | //*[@role='combobox' and (contains(translate(@aria-label,'CATEGORIA CATEGORY','categoria category'),'categoria') or contains(translate(@aria-label,'CATEGORY','category'),'category'))]")
+    @FindBy(name = "category")
     private WebElement selectorCategoria;
 
-    @FindBy(xpath = "//textarea[contains(@name,'message') or contains(@id,'message') or contains(@name,'mensaje') or contains(@id,'mensaje')] | //input[contains(@name,'message') or contains(@id,'message') or contains(@name,'mensaje') or contains(@id,'mensaje')] | //*[@contenteditable='true' and (contains(@aria-label,'mensaje') or contains(@aria-label,'message'))]")
+    @FindBy(name = "message")
     private WebElement campoMensaje;
 
-    @FindBy(xpath = "//*[@role='slider'] | //*[contains(@class,'slider') or contains(@class,'swipe') or contains(@class,'drag')][1]")
+    @FindBy(xpath = "//*[@id=\"root\"]/div/main/div/div[2]/section/div[3]/div/div[5]/div/div[1]")
     private WebElement controlDeslizanteEnvio;
 
-    @FindBy(xpath = "//*[@role='slider']//*[contains(@class,'thumb') or contains(@class,'handle') or contains(@class,'oval') or contains(@class,'knob')] | //*[contains(@class,'slider') or contains(@class,'swipe') or contains(@class,'drag')]//*[contains(@class,'thumb') or contains(@class,'handle') or contains(@class,'oval') or contains(@class,'knob')] | //button[contains(@class,'oval') or contains(@class,'knob') or contains(@class,'handle')]")
+    @FindBy(xpath = "//*[@id=\"root\"]/div/main/div/div[2]/section/div[3]/div/div[5]/div/div[3]")
     private WebElement ovaloDeEnvio;
 
     public RecognitionPage(WebDriver driver) {
@@ -47,10 +46,6 @@ public class RecognitionPage {
         this.wait = new WebDriverWait(driver, DEFAULT_TIMEOUT);
         this.actions = new Actions(driver);
         PageFactory.initElements(driver, this);
-    }
-
-    public void abrirPaginaDeReconocimientos() {
-        driver.get(obtenerUrlDeReconocimientos());
     }
 
     public void seleccionarRemitente(String remitente) {
@@ -123,15 +118,6 @@ public class RecognitionPage {
     private boolean esCampoDeTexto(WebElement elemento) {
         String tagName = elemento.getTagName();
         return Objects.equals("input", tagName) || Objects.equals("textarea", tagName);
-    }
-
-    private String obtenerUrlDeReconocimientos() {
-        return Optional.ofNullable(System.getProperty("sofkianos.recognition.url"))
-            .filter(url -> !url.isBlank())
-            .or(() -> Optional.ofNullable(System.getenv("SOFKIANOS_RECOGNITION_URL")).filter(url -> !url.isBlank()))
-            .or(() -> Optional.ofNullable(System.getProperty("webdriver.base.url")).filter(url -> !url.isBlank()))
-            .or(() -> Optional.ofNullable(System.getenv("SOFKIANOS_BASE_URL")).filter(url -> !url.isBlank()))
-            .orElseThrow(() -> new IllegalStateException("No se encontro la URL de reconocimientos. Configure sofkianos.recognition.url o webdriver.base.url."));
     }
 
     private String construirXpathDeOpcion(String valor) {
