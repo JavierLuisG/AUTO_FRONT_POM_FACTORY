@@ -53,7 +53,10 @@ public class KudosPage {
     public void verificarKudoFiltrado(String mensaje) {
         buscarPorMensaje(mensaje);
         esperarResultados();
-
+        wait.until(ExpectedConditions.presenceOfElementLocated(
+                org.openqa.selenium.By.xpath("//table//tr")));
+        List<WebElement> filas = driver.findElements(
+                org.openqa.selenium.By.xpath("//table//tr"));
         WebElement fila = filasKudos.stream()
                 .filter(WebElement::isDisplayed)
                 .filter(row -> normalizarTexto(row.getText()).contains(normalizarTexto(mensaje)))
@@ -66,9 +69,8 @@ public class KudosPage {
     }
 
     private void esperarResultados() {
-        wait.until(driver ->
-                filasKudos.stream().anyMatch(WebElement::isDisplayed)
-        );
+        wait.until(ExpectedConditions.presenceOfElementLocated(
+                org.openqa.selenium.By.xpath("//table//tr")));
     }
 
     private String normalizarTexto(String valor) {
