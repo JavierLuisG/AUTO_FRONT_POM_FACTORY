@@ -13,7 +13,7 @@ public class HomePage {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    @FindBy(linkText = "Acceder")
+    @FindBy(xpath = "//button[normalize-space()='Acceder']")
     private WebElement botonAcceder;
 
     public HomePage(WebDriver driver) {
