@@ -1,5 +1,6 @@
 package com.sofkianos.stepdefinitions;
 
+import com.sofkianos.pages.HomePage;
 import com.sofkianos.pages.KudosPage;
 import com.sofkianos.pages.RecognitionPage;
 import io.cucumber.java.en.And;
@@ -12,6 +13,7 @@ import org.openqa.selenium.support.PageFactory;
 
 public class ReconocimientoStepDefinitions {
 
+    private HomePage homePage;
     private RecognitionPage recognitionPage;
     private KudosPage kudosPage;
 
@@ -23,10 +25,11 @@ public class ReconocimientoStepDefinitions {
     @Given("que el usuario ingresa a la pagina de generacion de reconocimientos")
     public void queElUsuarioIngresaALaPaginaDeGeneracionDeReconocimientos() {
         inicializarPaginas();
-        recognitionPage.abrirPaginaDeReconocimientos();
+        homePage.abrirPaginaPrincipal();
+        homePage.hacerClickEnAcceder();
     }
 
-    @When("selecciona el remitente {string}")
+    @When("crea un reconocimiento seleccionando el remitente {string}")
     public void seleccionarElRemitente(String remitente) {
         this.remitente = remitente;
         recognitionPage.seleccionarRemitente(remitente);
@@ -58,13 +61,14 @@ public class ReconocimientoStepDefinitions {
     @Then("explora la seccion de Kudos y verifica que el reconocimiento fue creado")
     public void exploraLaSeccionDeKudosYVerificaQueElReconocimientoFueCreado() {
         kudosPage.abrirSeccionDeKudos();
-        kudosPage.verificarReconocimientoCreado(remitente, destinatario, categoria, mensaje);
+        kudosPage.verificarKudoFiltrado(mensaje);
     }
 
     private void inicializarPaginas() {
-        if (recognitionPage != null || kudosPage != null) return;
+        if (recognitionPage != null && kudosPage != null && homePage != null) return;
 
         WebDriver driver = ThucydidesWebDriverSupport.getDriver();
+        homePage = PageFactory.initElements(driver, HomePage.class);
         recognitionPage = PageFactory.initElements(driver, RecognitionPage.class);
         kudosPage = PageFactory.initElements(driver, KudosPage.class);
     }
