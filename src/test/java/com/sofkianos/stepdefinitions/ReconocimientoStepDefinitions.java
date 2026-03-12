@@ -26,56 +26,46 @@ public class ReconocimientoStepDefinitions {
         recognitionPage.abrirPaginaDeReconocimientos();
     }
 
-    @When("crea un reconocimiento seleccionando el {string}")
-    public void creaUnReconocimientoSeleccionandoEl(String remitente) {
-        inicializarPaginas();
+    @When("selecciona el remitente {string}")
+    public void seleccionarElRemitente(String remitente) {
         this.remitente = remitente;
         recognitionPage.seleccionarRemitente(remitente);
     }
 
-    @And("selecciona al {string}")
-    public void seleccionaAl(String destinatario) {
-        inicializarPaginas();
+    @And("selecciona al destinatario {string}")
+    public void seleccionarAlDestinatario(String destinatario) {
         this.destinatario = destinatario;
         recognitionPage.seleccionarDestinatario(destinatario);
     }
 
     @And("selecciona la categoria {string}")
     public void seleccionaLaCategoria(String categoria) {
-        inicializarPaginas();
         this.categoria = categoria;
         recognitionPage.seleccionarCategoria(categoria);
     }
 
     @And("escribe un mensaje de felicitacion {string}")
     public void escribeUnMensajeDeFelicitacion(String mensaje) {
-        inicializarPaginas();
         this.mensaje = mensaje;
         recognitionPage.ingresarMensajeDeFelicitacion(mensaje);
     }
 
     @And("envia el reconocimiento")
     public void enviaElReconocimiento() {
-        inicializarPaginas();
         recognitionPage.enviarReconocimiento();
     }
 
     @Then("explora la seccion de Kudos y verifica que el reconocimiento fue creado")
     public void exploraLaSeccionDeKudosYVerificaQueElReconocimientoFueCreado() {
-        inicializarPaginas();
         kudosPage.abrirSeccionDeKudos();
         kudosPage.verificarReconocimientoCreado(remitente, destinatario, categoria, mensaje);
     }
 
     private void inicializarPaginas() {
+        if (recognitionPage != null || kudosPage != null) return;
+
         WebDriver driver = ThucydidesWebDriverSupport.getDriver();
-
-        if (recognitionPage == null) {
-            recognitionPage = PageFactory.initElements(driver, RecognitionPage.class);
-        }
-
-        if (kudosPage == null) {
-            kudosPage = PageFactory.initElements(driver, KudosPage.class);
-        }
+        recognitionPage = PageFactory.initElements(driver, RecognitionPage.class);
+        kudosPage = PageFactory.initElements(driver, KudosPage.class);
     }
 }
