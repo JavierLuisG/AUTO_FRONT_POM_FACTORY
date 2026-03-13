@@ -22,13 +22,13 @@ public class KudosPage {
     @FindBy(xpath = "//button[contains(.,'Explorar Kudos')]")
     private WebElement botonExplorarKudos;
 
-    @FindBy(xpath = "//input[contains(@placeholder,'Buscar en de, para, mensaje...')]")
+    @FindBy(xpath = "//input[@aria-label='Buscar kudos']")
     private WebElement inputBusqueda;
 
-    @FindBy(xpath = "//button[contains(.,'Aplicar Filtros')]")
+    @FindBy(xpath = "//button[normalize-space()='Aplicar Filtros']")
     private WebElement botonAplicarFiltros;
 
-    @FindBy(xpath = "//table//tr")
+    @FindBy(xpath = "(//tbody/tr)[1]")
     private List<WebElement> filasKudos;
 
     public KudosPage(WebDriver driver) {
