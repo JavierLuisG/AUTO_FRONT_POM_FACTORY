@@ -35,10 +35,10 @@ public class RecognitionPage {
     @FindBy(name = "message")
     private WebElement campoMensaje;
 
-    @FindBy(xpath = "//span[normalize-space()='Desliza para enviar']")
+    @FindBy(xpath = "//*[@id=\"root\"]/div/main/div/div[2]/section/div[3]/div/div[5]/div/div[1]")
     private WebElement controlDeslizanteEnvio;
 
-    @FindBy(xpath = "//div[contains(@class,'bg-brand') and contains(@class,'rounded-full')]")
+    @FindBy(xpath = "//*[@id=\"root\"]/div/main/div/div[2]/section/div[3]/div/div[5]/div/div[3]")
     private WebElement ovaloDeEnvio;
 
     public RecognitionPage(WebDriver driver) {
