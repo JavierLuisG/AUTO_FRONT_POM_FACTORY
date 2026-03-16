@@ -43,10 +43,10 @@ public class KudosPage {
     }
 
     public void buscarPorMensaje(String mensaje) {
-        WebElement input = wait.until(ExpectedConditions.visibilityOf(inputBusqueda));
+        wait.until(ExpectedConditions.attributeToBe(inputBusqueda, "disabled", ""));
+        WebElement input = wait.until(ExpectedConditions.elementToBeClickable(inputBusqueda));
         input.clear();
         input.sendKeys(mensaje);
-
         wait.until(ExpectedConditions.elementToBeClickable(botonAplicarFiltros)).click();
     }
 
